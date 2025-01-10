@@ -1,0 +1,24 @@
+{
+  "name": "functionsnode",
+  "version": "1.0.0",
+  "description": "تطبيق لجمع بيانات الرحلات من موقع اليمنية وعرضها عبر API",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [
+    "flights",
+    "yemenia",
+    "express",
+    "puppeteer",
+    "cron"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "node-cron": "^3.0.2",
+    "puppeteer": "^24.0.0"
+  }
+}
