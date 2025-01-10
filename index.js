@@ -14,8 +14,21 @@ async function fetchFlightData() {
   let browser;
   try {
     browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    
+      args: [
+        
+        "--disable-setuid-sandbox",
+        "--no-sandbox",
+        "--single-process",
+        "--no-zygote",
+
+
+      ],
+
+      executablePath:
+      process.env.NODE_ENV === "production"
+        ? process.env.PUPPETEER_EXECUTABLE_PATH
+        : puppeteer.executablePath(),
     });
     const page = await browser.newPage();
     await page.goto('https://yemenia.com/ar/flights', { waitUntil: 'networkidle2' });
