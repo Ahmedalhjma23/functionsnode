@@ -16,14 +16,12 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "@vercel/node": "^5.0.2",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "mongoose": "^8.9.4",
     "node-cron": "^3.0.3",
     "puppeteer": "^24.0.0",
-    "serverless-http": "^3.2.0",
     "winston": "^3.17.0"
   },
   "devDependencies": {
