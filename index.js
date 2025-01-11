@@ -57,7 +57,10 @@ async function fetchFlightData() {
         '--single-process',
         '--disable-gpu'
       ],
-      userDataDir: '/tmp/.cache-puppeteer', // تحديد مسار كاش قابل للكتابة
+      // تحديد مسار كاش قابل للكتابة
+      userDataDir: '/tmp/.cache-puppeteer',
+      // تحديد مسار Chromium إذا كان مثبتًا بشكل مختلف
+      executablePath: process.env.CHROME_EXECUTABLE_PATH || undefined,
     });
     logger.info('تم تشغيل Puppeteer بنجاح.');
     const page = await browser.newPage();
