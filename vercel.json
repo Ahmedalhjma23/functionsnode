@@ -21,10 +21,10 @@
       "MONGODB_URI": "mongodb+srv://ahmednode:mgXq71T8PpqGDj0F@cluster0.f3cuv.mongodb.net/yemeniaFlights?retryWrites=true&w=majority",
       "PORT": "3000"
     },
-    "schedules": [
-      {
-        "path": "/fetchFlights",
+    "functions": {
+      "fetchFlights": {
         "schedule": "0 * * * *" 
       }
-    ]
+    }
   }
+  
