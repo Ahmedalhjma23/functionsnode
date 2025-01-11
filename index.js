@@ -1,6 +1,5 @@
-// استيراد الحزم المطلوبة
 const express = require('express');
-const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer'); // استخدام 'puppeteer' بدلاً من 'puppeteer-core'
 const cron = require('node-cron');
 const cors = require('cors');
 require('dotenv').config();
@@ -26,14 +25,10 @@ async function fetchFlightData() {
         '--no-zygote',
         '--single-process',
         '--disable-gpu'
-      ],
-      executablePath:
-        process.env.NODE_ENV === "production"
-          ? process.env.PUPPETEER_EXECUTABLE_PATH
-          : undefined, // إذا كنت تستخدم Puppeteer بشكل افتراضي في بيئة التطوير
+      ]
+      // لا حاجة لتحديد 'executablePath'، Puppeteer يتولى تنزيل Chromium
     });
     console.log('تم تشغيل Puppeteer بنجاح.');
-
     const page = await browser.newPage();
     console.log('تم فتح صفحة جديدة.');
     await page.goto('https://yemenia.com/ar/flights', { waitUntil: 'networkidle2' });
@@ -122,7 +117,7 @@ app.get('/', (req, res) => {
   res.json(flightsData);
 });
 
-// تحديث البيانات كل ساعة باستخدام node-cron (كل 0 * * * * = رأس كل ساعة)
+// تحديث البيانات كل ساعة باستخدام node-cron (كل ٠ * * * * = رأس كل ساعة)
 cron.schedule('0 * * * *', () => {
   console.log('تحديث البيانات (من الكرون) ...');
   fetchFlightData();
