@@ -1,0 +1,30 @@
+{
+    "version": 2,
+    "builds": [
+      {
+        "src": "index.js",
+        "use": "@vercel/node"
+      }
+    ],
+    "routes": [
+      {
+        "src": "/fetchFlights",
+        "methods": ["GET"],
+        "dest": "/index.js"
+      },
+      {
+        "src": "/(.*)",
+        "dest": "/index.js"
+      }
+    ],
+    "env": {
+      "MONGODB_URI": "mongodb+srv://ahmednode:mgXq71T8PpqGDj0F@cluster0.f3cuv.mongodb.net/yemeniaFlights?retryWrites=true&w=majority",
+      "PORT": "3000"
+    },
+    "schedules": [
+      {
+        "path": "/fetchFlights",
+        "schedule": "0 * * * *" 
+      }
+    ]
+  }

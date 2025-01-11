@@ -1,12 +1,9 @@
-// index.js
-
 const express = require('express');
 const puppeteer = require('puppeteer');
-const cron = require('node-cron');
-const cors = require('cors');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const winston = require('winston');
+const serverless = require('serverless-http');
 
 dotenv.config();
 
@@ -127,18 +124,11 @@ async function fetchFlightData() {
   }
 }
 
-// جلب البيانات مرة عند بدء التشغيل
-fetchFlightData().then(() => {
-  logger.info('تم جلب البيانات الأولية.');
-}).catch(error => {
-  logger.error(`خطأ في جلب البيانات الأولية: ${error.message}`);
-});
-
 // إنشاء تطبيق Express
 const app = express();
 
 // تفعيل CORS للسماح بالطلبات من مصادر مختلفة
-app.use(cors());
+app.use(require('cors')());
 
 // نقطة النهاية لعرض بيانات الرحلات كـ JSON من قاعدة البيانات
 app.get('/api/flights', async (req, res) => {
@@ -168,10 +158,16 @@ app.get('/', async (req, res) => {
   }
 });
 
-// تحديث البيانات كل ساعة باستخدام node-cron (كل ٠ * * * * = رأس كل ساعة)
-cron.schedule('0 * * * *', () => {
-  logger.info('بدء تحديث البيانات (من الكرون)...');
-  fetchFlightData();
+// نقطة النهاية المجدولة لجلب البيانات
+app.get('/fetchFlights', async (req, res) => {
+  try {
+    logger.info('بدء جلب البيانات من الدالة المجدولة.');
+    await fetchFlightData();
+    res.status(200).json({ message: 'تم جلب البيانات بنجاح.' });
+  } catch (error) {
+    logger.error(`خطأ في الدالة المجدولة: ${error.message}`);
+    res.status(500).json({ message: 'حدث خطأ أثناء جلب البيانات.', error: error.message });
+  }
 });
 
 // الاتصال بقاعدة بيانات MongoDB قبل تشغيل السيرفر
@@ -180,11 +176,16 @@ mongoose.connect(process.env.MONGODB_URI, {
   useUnifiedTopology: true
 }).then(() => {
   logger.info('تم الاتصال بقاعدة بيانات MongoDB بنجاح.');
-  // تشغيل السيرفر بعد الاتصال بقاعدة البيانات
-  const PORT = process.env.PORT || 3000;
-  app.listen(PORT, () => {
-    logger.info(`السيرفر يعمل على http://localhost:${PORT}/api/flights`);
-  });
+  // تشغيل السيرفر فقط في التطوير
+  if (process.env.NODE_ENV !== 'production') {
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => {
+      logger.info(`السيرفر يعمل على http://localhost:${PORT}/api/flights`);
+    });
+  }
 }).catch(error => {
   logger.error(`فشل الاتصال بقاعدة بيانات MongoDB: ${error.message}`);
 });
+
+// تصدير التطبيق كدالة Serverless
+module.exports.handler = serverless(app);
