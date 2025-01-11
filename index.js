@@ -1,3 +1,4 @@
+// استيراد الحزم المطلوبة
 const express = require('express');
 const puppeteer = require('puppeteer');
 const cron = require('node-cron');
@@ -13,25 +14,30 @@ let flightsData = [];
 async function fetchFlightData() {
   let browser;
   try {
+    console.log('بدء تشغيل Puppeteer...');
     browser = await puppeteer.launch({
-    
+      headless: true,
       args: [
-        
-        "--disable-setuid-sandbox",
-        "--no-sandbox",
-        "--single-process",
-        "--no-zygote",
-
-
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--no-first-run',
+        '--no-zygote',
+        '--single-process',
+        '--disable-gpu'
       ],
-
       executablePath:
-      process.env.NODE_ENV === "production"
-        ? process.env.PUPPETEER_EXECUTABLE_PATH
-        : puppeteer.executablePath(),
+        process.env.NODE_ENV === "production"
+          ? process.env.PUPPETEER_EXECUTABLE_PATH
+          : undefined, // إذا كنت تستخدم Puppeteer بشكل افتراضي في بيئة التطوير
     });
+    console.log('تم تشغيل Puppeteer بنجاح.');
+
     const page = await browser.newPage();
+    console.log('تم فتح صفحة جديدة.');
     await page.goto('https://yemenia.com/ar/flights', { waitUntil: 'networkidle2' });
+    console.log('تم الانتقال إلى موقع اليمنية.');
 
     const flights = await page.evaluate(() => {
       const allFlights = [];
@@ -59,6 +65,8 @@ async function fetchFlightData() {
       return allFlights;
     });
 
+    console.log(`تم جلب ${flights.length} رحلة من الموقع.`);
+
     // قارن البيانات القديمة بالبيانات الجديدة لتحديث فقط الرحلات الجديدة
     const newFlights = flights.filter((flight) => {
       return !flightsData.some(
@@ -76,16 +84,21 @@ async function fetchFlightData() {
       console.log('لا توجد رحلات جديدة');
     }
   } catch (error) {
-    console.error('حدث خطأ أثناء جلب البيانات:', error.message);
+    console.error('حدث خطأ أثناء جلب البيانات:', error);
   } finally {
     if (browser) {
       await browser.close();
+      console.log('تم إغلاق Puppeteer.');
     }
   }
 }
 
 // جلب البيانات مرة عند بدء التشغيل
-fetchFlightData();
+fetchFlightData().then(() => {
+  console.log('تم جلب البيانات الأولية.');
+}).catch(error => {
+  console.error('خطأ في جلب البيانات الأولية:', error);
+});
 
 // إنشاء تطبيق Express
 const app = express();
@@ -95,15 +108,21 @@ app.use(cors());
 
 // نقطة النهاية لعرض بيانات الرحلات كـ JSON
 app.get('/api/flights', (req, res) => {
+  if (flightsData.length === 0) {
+    return res.status(503).json({ message: 'البيانات قيد التحميل. الرجاء المحاولة لاحقًا.' });
+  }
   res.json(flightsData);
 });
 
-// نقطة النهاية الأساسية للتحقق من حالة السيرفر
+// نقطة النهاية الأساسية لعرض بيانات الرحلات مباشرةً
 app.get('/', (req, res) => {
-  res.send('خادم تتبع الرحلات يعمل بنجاح.');
+  if (flightsData.length === 0) {
+    return res.status(503).json({ message: 'البيانات قيد التحميل. الرجاء المحاولة لاحقًا.' });
+  }
+  res.json(flightsData);
 });
 
-// تحديث البيانات كل ساعة باستخدام node-cron (كل ٠ * * * * = رأس كل ساعة)
+// تحديث البيانات كل ساعة باستخدام node-cron (كل 0 * * * * = رأس كل ساعة)
 cron.schedule('0 * * * *', () => {
   console.log('تحديث البيانات (من الكرون) ...');
   fetchFlightData();
