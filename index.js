@@ -26,7 +26,7 @@ async function fetchFlightData() {
         '--single-process',
         '--disable-gpu'
       ]
-      // لا حاجة لتحديد 'executablePath'، Puppeteer يتولى تنزيل Chromium
+      // لا حاجة لتحديد 'executablePath'، Puppeteer يتولى تنزيل Chromium تلقائيًا
     });
     console.log('تم تشغيل Puppeteer بنجاح.');
     const page = await browser.newPage();

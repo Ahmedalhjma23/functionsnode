@@ -1,12 +1,24 @@
-FROM ghcr.io/puppeteer/puppeteer:24.0.0
+# استخدم صورة Node.js الرسمية
+FROM node:20
 
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
-    PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
+# تثبيت Chromium
+RUN apt-get update && apt-get install -y chromium
 
-WORKDIR /usr/src/app
+# تعيين متغيرات البيئة لـ Puppeteer
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
-COPY package*.json ./
-RUN npm ci
+# إنشاء مجلد العمل
+WORKDIR /app
+
+# نسخ ملفات المشروع
+COPY package.json package-lock.json ./
+RUN npm install
+
+# نسخ باقي الملفات
 COPY . .
-CMD [ "node", "index.js" ]
 
+# تعيين منفذ التشغيل
+EXPOSE 3000
+
+# تشغيل التطبيق
+CMD ["npm", "start"]
